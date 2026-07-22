@@ -33,6 +33,7 @@
     transition: opacity .28s ease, transform .28s ease;
   }
   #panel.fade { opacity: 0; transform: translateY(18px); }
+  #panel.scroll-mode { opacity: 0; }
   #kicker {
     font-size: 13px; letter-spacing: .35em; opacity: .75;
     margin-bottom: 10px; text-transform: uppercase;
@@ -220,7 +221,7 @@ const SEGS = [
     d:'完成调试 APP 与监控平台前端的技术架构设计，实现 APP 端与支架上位机之间的联调开发；承担主运维、复杂功能研判与疑难问题排查，及时跟进全部 Bug 并负责 APP 上线更新，同期完成支架调试 APP 软著申请材料的提交。',
     tags:['架构设计','上位机联调','主运维','软著申请'] },
 
-  { k:'三、亮点与不足分析', t:'阶段工作复盘', build:'mid', c:0x34d399, centered:true,
+  { k:'三、亮点与不足分析', t:'阶段工作复盘', build:'mid', c:0x34d399, centered:true, panel:true,
     d:'结合上半年项目结果，归纳 3 项工作亮点，并针对知识、算法和产品能力三个方面制定改善计划。' },
   { k:'三、亮点与不足分析 · 亮点 01 / 03', t:'桌面机器人原型闭环', build:'robot', c:0x34d399,
     d:'完成从硬件 MVP 搭建到软件架构与交互流程实现，形成可完整演示的桌面机器人原型。',
@@ -241,7 +242,7 @@ const SEGS = [
     d:'不足：需求分析、价值判断和结果衡量能力需增强。改善计划：在项目立项和迭代阶段补充用户目标、验收指标与复盘记录，形成需求到交付的闭环。',
     tags:['需求分析','验收指标','交付复盘'] },
 
-  { k:'四、2026 年 2H 工作计划', t:'下半年工作安排', build:'mid', c:0xa78bfa, centered:true,
+  { k:'四、2026 年 2H 工作计划', t:'下半年工作安排', build:'mid', c:0xa78bfa, centered:true, panel:true,
     d:'下半年计划覆盖技术管理、机器人平台集成、项目交接、核心模块开发与运维、前端方向支持等 7 项工作。' },
   { k:'四、2026 年 2H 工作计划 · 01 / 07', t:'电池护照系统', build:'battery', c:0xa78bfa,
     d:'担任天合侧技术经理，负责项目中所有技术对接工作，保障各方技术方案对齐与落地。',
@@ -265,7 +266,7 @@ const SEGS = [
     d:'协助排查前端复杂问题，并完成与部分应用的 SDK 集成工作。',
     tags:['问题排查','SDK 集成'] },
 
-  { k:'时间轴结束 · MID-YEAR REVIEW', t:'汇报主体结束', build:'finale', c:0xfbbf24, centered:true,
+  { k:'时间轴结束 · MID-YEAR REVIEW', t:'汇报主体结束', build:'finale', c:0xfbbf24, centered:true, panel:true,
     d:'以上为本次年中述职汇报的工作总结与下半年计划。继续向后滚动查看感谢与提名。',
     tags:['工作总结','重点工作','下半年计划'] },
 ];
@@ -318,6 +319,154 @@ function textSprite(text, color = '#ffffff') {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
   sp.scale.set(11, 2.15, 1);
   return sp;
+}
+
+/* ================= 卷轴(挂轴,自上而下展开) ================= */
+function wrapLines(g, text, maxW) {
+  const lines = []; let line = '';
+  for (const ch of text) {
+    if (line && g.measureText(line + ch).width > maxW) { lines.push(line); line = ch; }
+    else line += ch;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function makeScroll(seg, idx) {
+  const hex = '#' + seg.c.toString(16).padStart(6, '0');
+  const rgba = (c, a) => `rgba(${c >> 16 & 255},${c >> 8 & 255},${c & 255},${a})`;
+  const mix = (base, c, t) => {   // 卷面底色向类型色微调
+    const n = parseInt(base.slice(1), 16);
+    const ch = i => Math.round((n >> i & 255) * (1 - t) + (c >> i & 255) * t);
+    return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+  };
+  // 四类卷轴形制:1H 档案 / 亮点嘉奖 / 不足修缮 / 2H 蓝图
+  const kind = seg.k.includes('· 亮点') ? 'hi'
+             : seg.k.includes('· 不足') ? 'lo'
+             : seg.k.startsWith('四') ? 'p2h' : 'p1h';
+  const cv = document.createElement('canvas');
+  cv.width = 1024; cv.height = 1152;
+  const x = cv.getContext('2d');
+  const font = (w, s) => `${w} ${s}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+
+  // 卷面:深色渐变,按类型着色
+  const grad = x.createLinearGradient(0, 0, 0, 1152);
+  grad.addColorStop(0, mix('#101a2c', seg.c, .18));
+  grad.addColorStop(1, mix('#090e18', seg.c, .10));
+  x.fillStyle = grad; x.fillRect(0, 0, 1024, 1152);
+
+  // 边框:档案单框 / 嘉奖双框 / 修缮角括号 / 蓝图对位刻度
+  x.strokeStyle = rgba(seg.c, .45);
+  if (kind === 'lo') {
+    x.lineWidth = 5; x.beginPath();
+    for (const [cx, cy, dx, dy] of [[30, 30, 1, 1], [994, 30, -1, 1], [30, 1122, 1, -1], [994, 1122, -1, -1]]) {
+      x.moveTo(cx + 90 * dx, cy); x.lineTo(cx, cy); x.lineTo(cx, cy + 90 * dy);
+    }
+    x.stroke();
+  } else {
+    x.lineWidth = kind === 'hi' ? 5 : 4;
+    x.strokeRect(30, 30, 964, 1092);
+    if (kind === 'hi') { x.lineWidth = 2; x.strokeRect(48, 48, 928, 1056); }
+    if (kind === 'p2h') {
+      x.lineWidth = 3; x.beginPath();
+      for (const [cx, cy, dx, dy] of [[30, 30, -1, -1], [994, 30, 1, -1], [30, 1122, -1, 1], [994, 1122, 1, 1]]) {
+        x.moveTo(cx + 26 * dx, cy); x.lineTo(cx + 6 * dx, cy);
+        x.moveTo(cx, cy + 26 * dy); x.lineTo(cx, cy + 6 * dy);
+      }
+      x.stroke();
+    }
+  }
+
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = hex; x.font = font(600, 34);
+  x.fillText(kind === 'hi' ? `◆ ${seg.k} ◆` : seg.k, 512, 118);
+
+  let size = 70;
+  x.font = font(800, size);
+  const tw = x.measureText(seg.t).width;
+  if (tw > 880) { size = Math.floor(size * 880 / tw); x.font = font(800, size); }
+  x.fillStyle = '#f4f7fa';
+  x.fillText(seg.t, 512, 228);
+
+  // 分隔:档案实线 / 嘉奖菱花 / 修缮虚线 / 蓝图点线
+  x.fillStyle = hex;
+  if (kind === 'lo') { for (let i = 0; i < 6; i++) x.fillRect(430 + i * 29, 294, 17, 4); }
+  else if (kind === 'p2h') { for (let i = 0; i < 9; i++) { x.beginPath(); x.arc(448 + i * 16, 296, 2.6, 0, 7); x.fill(); } }
+  else {
+    x.fillRect(432, 292, 160, 5);
+    if (kind === 'hi') { x.save(); x.translate(512, 294); x.rotate(Math.PI / 4); x.fillRect(-7, -7, 14, 14); x.restore(); }
+  }
+
+  x.fillStyle = '#c4d2e0'; x.font = font(400, 37);
+  const lines = wrapLines(x, seg.d, 850);
+  lines.forEach((ln, li) => x.fillText(ln, 512, 385 + li * 64));
+
+  // 标签:描线小印式排列,自动换行
+  x.font = font(500, 30);
+  let tagY = 385 + lines.length * 64 + 78, row = [], rowW = 0;
+  const drawRow = () => {
+    let px = 512 - rowW / 2 + 11;
+    for (const [txt, w] of row) {
+      if (kind === 'hi') {              // 嘉奖:实心色章
+        x.fillStyle = rgba(seg.c, .24);
+        x.fillRect(px, tagY - 26, w, 52);
+      } else if (kind === 'p2h' && x.roundRect) {   // 蓝图:圆角胶囊
+        x.strokeStyle = rgba(seg.c, .55); x.lineWidth = 2;
+        x.beginPath(); x.roundRect(px, tagY - 26, w, 52, 26); x.stroke();
+      } else {                          // 档案描线 / 修缮虚线
+        x.strokeStyle = kind === 'lo' ? rgba(seg.c, .55) : 'rgba(255,255,255,.35)';
+        x.lineWidth = 2;
+        if (kind === 'lo') x.setLineDash([8, 6]);
+        x.strokeRect(px, tagY - 26, w, 52);
+        x.setLineDash([]);
+      }
+      x.fillStyle = kind === 'hi' ? '#ffffff' : '#e5edf5';
+      x.fillText(txt, px + w / 2, tagY);
+      px += w + 22;
+    }
+  };
+  for (const txt of seg.tags || []) {
+    const w = x.measureText(txt).width + 36;
+    if (rowW + w > 850 && row.length) { drawRow(); tagY += 72; row = []; rowW = 0; }
+    row.push([txt, w]); rowW += w + 22;
+  }
+  if (row.length) drawRow();
+
+  const W = 7.2, H = 8.1;
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = 4;
+  const paperGeo = new THREE.PlaneGeometry(W, H);
+  paperGeo.translate(0, -H / 2, 0);   // 顶部为轴,卷面向下展开
+  const paper = new THREE.Mesh(paperGeo,
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  paper.position.y = -.34;
+  const g = new THREE.Group();
+  const rollerM = mat(0xfbbf24, 0xfbbf24, .9);
+  const topR = cyl(.24, .24, W + .9, rollerM); topR.rotation.z = Math.PI / 2;
+  const botR = cyl(.3, .3, W + .9, rollerM); botR.rotation.z = Math.PI / 2;
+  g.add(topR, paper, botR);
+  g.visible = false;
+
+  const s = { open: 0, v: 0 };
+  return { group: g, tick(t, dt) {
+    // 视角由远及近渐开,滚过站点合拢
+    const target = reduceMotion
+      ? (Math.abs(viewF - idx) < 1 ? 1 : 0)
+      : smoothstep((1 - Math.abs(viewF - idx)) / .55);
+    // 弹簧阻尼,收放带惯性
+    s.v += (target - s.open) * 55 * dt;
+    s.v *= Math.exp(-9 * dt);
+    s.open += s.v * dt;
+    const open = Math.min(Math.max(s.open, 0), 1);
+    g.visible = open > .01;
+    if (!g.visible) return;
+    const oy = Math.max(open, .001);
+    paper.scale.y = oy;
+    tex.repeat.y = oy;
+    tex.offset.y = 1 - oy;
+    botR.position.y = -.34 - H * open;
+    g.rotation.z = Math.sin(t * .8 + idx) * .025;   // 悬挂轻摆
+  } };
 }
 
 /* ================= 各站点建造者 =================
@@ -717,6 +866,13 @@ for (let i = 0; i < N; i++) {
     label.position.set(x, 6.5, z);
     holder.add(label);
   }
+  if (i > 0 && !seg.panel) {   // PD 人员卡片与阶段复盘保持原 HUD 文案,不挂卷轴
+    const sc = makeScroll(seg, i);
+    const scrollX = centered ? -5.2 : -side * 5.2;   // 挂在本站模型的水平镜像侧,靠近中线防遮挡
+    sc.group.position.set(scrollX, 7.6, z);
+    holder.add(sc.group);
+    tickers.push(sc.tick);
+  }
   scene.add(holder);
 }
 
@@ -760,6 +916,7 @@ function setSegment(i) {
   if (i === curIdx) return;
   curIdx = i;
   clearTimeout(panelTimer);
+  panel.classList.toggle('scroll-mode', i !== 0 && !SEGS[i].panel);
   panel.classList.add('fade');
   panelTimer = setTimeout(() => {
     const s = SEGS[i];
@@ -825,7 +982,7 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
-let smooth = 0;
+let smooth = 0, viewF = 0;
 const clock = new THREE.Clock();
 const lookAhead = new THREE.Vector3();
 
@@ -853,12 +1010,14 @@ renderer.setAnimationLoop(() => {
   lookAhead.y -= .4;
   camera.lookAt(lookAhead);
 
+  viewF = -lookAhead.z / GAP;
+
   for (const fn of tickers) fn(t, dt);
 
   bar.style.width = `${smooth * 100}%`;
   // 文案与“注视点”同步而非相机位置:相机总是看向前方站台,
   // 用 lookAhead 的 z 推算当前看到的站,文字即随视野切换
-  const viewIdx = Math.min(Math.max(Math.round(-lookAhead.z / GAP), 0), N - 1);
+  const viewIdx = Math.min(Math.max(Math.round(viewF), 0), N - 1);
   setSegment(viewIdx);
 
   renderer.render(scene, camera);

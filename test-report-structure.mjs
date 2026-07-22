@@ -40,6 +40,28 @@ const shortcomingsWithPlans = segmentBlock.match(/\{ k:'三、亮点与不足分
 assert.equal(shortcomingsWithPlans.length, 3, 'each shortcoming needs an improvement plan');
 assert.ok(!html.includes('innerHeight * .8'), 'start action must not skip the PD namecard');
 assert.ok(html.includes('clearTimeout(panelTimer)'), 'rapid navigation must cancel stale HUD updates');
+assert.ok(html.includes("panel.classList.toggle('scroll-mode', i !== 0 && !SEGS[i].panel)"), 'PD namecard and chapter review intro must keep the original HUD panel');
+assert.ok(html.includes("t:'阶段工作复盘', build:'mid', c:0x34d399, centered:true, panel:true"), 'chapter review intro must opt into the HUD panel');
+assert.ok(html.includes("t:'下半年工作安排', build:'mid', c:0xa78bfa, centered:true, panel:true"), 'chapter plan intro must opt into the HUD panel');
+assert.ok(html.includes("t:'汇报主体结束', build:'finale', c:0xfbbf24, centered:true, panel:true"), 'finale must opt into the HUD panel');
+assert.ok(html.includes('if (i > 0 && !seg.panel)'), 'panel stations must not get a 3D scroll');
+assert.ok(html.includes('function makeScroll(seg, idx)'), 'station copy must render as a 3D hanging scroll');
+assert.ok(html.includes('paperGeo.translate(0, -H / 2, 0)'), 'scroll must unroll from the top downward');
+assert.ok(html.includes('const scrollX = centered ? -5.2 : -side * 5.2'), 'scroll must anchor near the rail centerline, mirrored from the model');
+assert.ok(html.includes('s.v += (target - s.open) * 55 * dt'), 'scroll unroll must use spring physics');
+
+// 四类卷轴形制:1H 档案 / 亮点嘉奖 / 不足修缮 / 2H 蓝图
+assert.ok(html.includes("seg.k.includes('· 亮点')"), 'scroll kind must be derived from the kicker');
+assert.ok(html.includes('◆ ${seg.k} ◆'), 'highlight scrolls must carry diamond ornaments');
+assert.ok(html.includes('x.setLineDash([8, 6])'), 'shortcoming scrolls must use dashed strokes');
+assert.ok(html.includes('x.roundRect(px, tagY - 26, w, 52, 26)'), 'plan scrolls must use capsule tags');
+assert.ok(html.includes("mix('#101a2c', seg.c"), 'scroll paper must tint toward the segment color');
+const kindOf = k => k.includes('· 亮点') ? 'hi' : k.includes('· 不足') ? 'lo' : k.startsWith('四') ? 'p2h' : 'p1h';
+const panelIdx = new Set([0, chapterIndexes[2], chapterIndexes[3], kickers.length - 1]);
+const scrollKinds = kickers.filter((_, i) => !panelIdx.has(i)).map(kindOf);
+assert.deepEqual(
+  ['p1h', 'hi', 'lo', 'p2h'].map(kind => scrollKinds.filter(k => k === kind).length),
+  [6, 3, 3, 7], 'scroll kinds must map to 6 1H projects, 3 highlights, 3 shortcomings, 7 2H plans');
 assert.ok(html.includes('timelineMaxScroll()'), 'timeline and post-timeline scroll ranges must be independent');
 assert.ok(html.includes('function updateThanksTransition(progress)'), 'thanks transition must be driven by scroll progress');
 assert.ok(html.includes('smoothstep((progress - .08) / .72)'), 'timeline must crossfade into the thanks backdrop');
