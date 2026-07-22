@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2026 年中述职汇报 · 焦玉旻</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: auto; }
+  body {
+    background: #05070d;
+    color: #e5edf5;
+    font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+  #stage { position: fixed; inset: 0; z-index: 0; display: block; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+
+  #progress {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: rgba(255,255,255,.08);
+  }
+  #bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #f59e0b, #22d3ee 40%, #a78bfa 80%, #fbbf24);
+    transition: width .15s linear;
+  }
+
+  #panel {
+    position: absolute; left: 6vw; bottom: 11vh; max-width: 500px;
+    transition: opacity .28s ease, transform .28s ease;
+  }
+  #panel.fade { opacity: 0; transform: translateY(18px); }
+  #kicker {
+    font-size: 13px; letter-spacing: .35em; opacity: .75;
+    margin-bottom: 10px; text-transform: uppercase;
+  }
+  #title {
+    font-size: clamp(30px, 4.2vw, 52px); font-weight: 800;
+    line-height: 1.15; margin-bottom: 14px;
+    text-shadow: 0 2px 30px rgba(0,0,0,.6);
+  }
+  #desc {
+    font-size: 15px; line-height: 1.9; opacity: .88; color: #c4d2e0;
+  }
+  #tags { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+  #tags span {
+    font-size: 12px; padding: 4px 12px; border-radius: 99px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.06); backdrop-filter: blur(4px);
+  }
+  #again {
+    display: none; margin-top: 22px; pointer-events: auto; cursor: pointer;
+    font-size: 15px; padding: 12px 28px; border-radius: 99px;
+    color: #05070d; background: #fbbf24; border: none; font-weight: 700;
+    letter-spacing: .1em;
+  }
+  #again:hover { background: #fde68a; }
+
+  /* ---------- dots nav ---------- */
+  #dots {
+    position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px; pointer-events: auto;
+  }
+  #dots button {
+    width: 9px; height: 9px; border-radius: 50%; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.4); background: transparent;
+    transition: all .25s; padding: 0;
+  }
+  #dots button.on { background: #fff; transform: scale(1.5); border-color: #fff; }
+  #dots button:hover { border-color: #fff; }
+
+  #hint {
+    position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+    font-size: 13px; letter-spacing: .3em; opacity: .7;
+    animation: bob 1.6s ease-in-out infinite;
+    transition: opacity .5s;
+  }
+  @keyframes bob { 50% { transform: translate(-50%, 8px); } }
+
+  /* ---------- cover ---------- */
+  #cover {
+    position: fixed; inset: 0; z-index: 100;
+    background: radial-gradient(ellipse at 50% 40%, #0b1220 0%, #05070d 70%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 26px; text-align: center; padding: 0 8vw;
+    transition: opacity .8s ease;
+  }
+  #cover.off { opacity: 0; pointer-events: none; }
+  #cover .k { font-size: 14px; letter-spacing: .5em; color: #f59e0b; }
+  #cover h1 { font-size: clamp(38px, 6vw, 72px); font-weight: 900; line-height: 1.2; }
+  #cover h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, #22d3ee, #a78bfa);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  #cover p { max-width: 560px; line-height: 2; color: #93a5b8; font-size: 15px; }
+  #start {
+    margin-top: 10px; cursor: pointer; font-size: 16px; font-weight: 700;
+    letter-spacing: .2em; padding: 15px 44px; border-radius: 99px;
+    color: #05070d; border: none;
+    background: linear-gradient(90deg, #22d3ee, #a78bfa);
+  }
+  #start:hover { filter: brightness(1.15); }
+
+  /* ---------- thanks ---------- */
+  #thanks {
+    position: fixed; inset: 0; z-index: 40; display: grid; place-items: center;
+    padding: 8vh 8vw; background: transparent;
+    visibility: hidden; pointer-events: none;
+  }
+  #thanks.show { visibility: visible; pointer-events: auto; }
+  #thanks-inner {
+    width: min(680px, 100%);
+    opacity: 0; transform: translateY(48px); will-change: opacity, transform;
+  }
+  #thanks-kicker {
+    font-size: 13px; letter-spacing: .35em; opacity: .75; text-transform: uppercase;
+  }
+  #thanks h2 { margin-top: 12px; font-size: clamp(30px, 4.2vw, 52px); font-weight: 800; line-height: 1.15; }
+  #thanks-copy { margin-top: 14px; font-size: 15px; line-height: 1.9; color: #c4d2e0; }
+  #nominees { margin-top: 44px; position: relative; padding-left: 30px; }
+  #nominees::before {
+    content: ''; position: absolute; left: 5px; top: 10px; bottom: 10px; width: 1px;
+    background: linear-gradient(rgba(251,191,36,.7), rgba(251,191,36,.12));
+  }
+  .nominee { position: relative; padding: 13px 0; }
+  .nominee::before {
+    content: ''; position: absolute; left: -30px; top: 50%; transform: translateY(-50%);
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #fbbf24; border: 1px solid #fbbf24;
+    box-shadow: 0 0 12px rgba(251,191,36,.55);
+  }
+  .nominee strong { font-size: clamp(22px, 2.6vw, 30px); font-weight: 700; }
+  #thanks-again {
+    margin-top: 38px; cursor: pointer; font-size: 15px; padding: 12px 28px;
+    border: none; border-radius: 99px; letter-spacing: .1em;
+    color: #05070d; background: #fbbf24; font-weight: 700;
+  }
+  #thanks-again:hover { background: #fde68a; }
+
+  @media (max-width: 640px) {
+    #panel { left: 5vw; right: 5vw; bottom: 9vh; }
+    #dots { right: 10px; gap: 8px; }
+    #thanks { padding: 8vh 6vw; }
+  }
+  @media (max-height: 520px) {
+    #dots { display: none; }
+    #thanks { place-items: start center; padding-top: 32px; padding-bottom: 32px; overflow-y: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #hint { animation: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div id="hud">
+  <div id="progress"><div id="bar"></div></div>
+  <div id="panel">
+    <div id="kicker"></div>
+    <h1 id="title"></h1>
+    <p id="desc"></p>
+    <div id="tags"></div>
+    <button id="again">↺ 回到开场</button>
+  </div>
+  <div id="dots"></div>
+  <div id="hint">滚 动 浏 览 ↓</div>
+</div>
+
+<div id="cover">
+  <div class="k">2026 MID-YEAR REVIEW</div>
+  <h1>2026 年中述职汇报<br><em>焦玉旻 · 主任工程师</em></h1>
+  <p>本次汇报包括 1H 工作总结、重点工作、亮点与不足分析、2H 工作计划，以及感谢与提名五个部分。</p>
+  <button id="start">开 始 汇 报 →</button>
+</div>
+
+<section id="thanks" aria-labelledby="thanks-title" aria-hidden="true">
+  <div id="thanks-inner">
+    <div id="thanks-kicker">Timeline Complete · 2026 Mid-Year Review</div>
+    <h2 id="thanks-title">感谢与提名</h2>
+    <p id="thanks-copy">感谢以下同事在项目协作和工作推进中的支持，并提名为本次述职的榜样人选。</p>
+    <div id="nominees" role="list">
+      <div class="nominee" role="listitem"><strong>周新亚</strong></div>
+      <div class="nominee" role="listitem"><strong>郭芳芳</strong></div>
+      <div class="nominee" role="listitem"><strong>苏纪兵</strong></div>
+    </div>
+    <button id="thanks-again">↺ 回到开场</button>
+  </div>
+</section>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+/* ================= 叙事脚本 ================= */
+const SEGS = [
+  { k:'一、2026 年 1H 工作总结 · PD 人员卡片', t:'焦玉旻', build:'namecard', c:0xfbbf24, label:'2026 年中述职',
+    d:'2026 年上半年围绕机器人、数据平台与工业应用，承担软件及前端架构设计、核心功能落地、复杂问题研判与项目运维，完成 6 项重点工作。',
+    tags:['主任工程师','6 项重点工作','架构与交付'] },
+
+  { k:'二、2026 年 1H 重点工作 · 01 / 06', t:'机器人 MVP 原型', build:'robot', c:0x22d3ee,
+    d:'参与硬件 MVP 原型搭建，独立完成机器人软件整体架构设计与功能落地，达成 MVP 阶段既定目标：语音对话、远程视频画面、摄像头扫码经蓝牙连接支架设备、Modbus 协议对接与舵机控制，打通前端网页—机器人—沙盘的演示与运维工单流程闭环。',
+    tags:['软件架构','语音与视频','Modbus 对接','演示流程闭环'] },
+  { k:'二、2026 年 1H 重点工作 · 02 / 06', t:'指标语义平台', build:'cubes', c:0x22d3ee,
+    d:'完成平台前端全部架构工作，承担指标语义树等复杂模块的开发与功能集成，制定前端开发规范并持续执行代码 Review。',
+    tags:['主架构设计','指标语义树','开发规范','Code Review'] },
+  { k:'二、2026 年 1H 重点工作 · 03 / 06', t:'支架装箱', build:'pallet', c:0x22d3ee,
+    d:'负责前端核心框架及核心功能的开发实现，完成 3D 场景的装箱步骤，打通导出装箱手册从设计开发到落地实现的完整闭环，并持续进行复杂功能集成与代码 Review。',
+    tags:['核心框架','3D 装箱步骤','装箱手册闭环'] },
+  { k:'二、2026 年 1H 重点工作 · 04 / 06', t:'发电量预测', build:'solar', c:0x22d3ee,
+    d:'使用 Vibe Coding 完成全部项目开发并 100% 按期交付，完成架构设计与核心功能落地；整体采用模块化拆分，算法包可独立服务于任何需要算法公式的系统。',
+    tags:['Vibe Coding','100% 按期交付','模块化拆分','算法包独立服务'] },
+  { k:'二、2026 年 1H 重点工作 · 05 / 06', t:'ChatBI', build:'bubble', c:0x22d3ee,
+    d:'设计 SDK 嵌入方案并在天玑完成方案整合落地，日常协助复杂功能排查，持续提供技术支持。',
+    tags:['SDK 嵌入方案','天玑整合落地','技术支持'] },
+  { k:'二、2026 年 1H 重点工作 · 06 / 06', t:'TSC 监控平台与调试 APP', build:'tsc', c:0x22d3ee,
+    d:'完成调试 APP 与监控平台前端的技术架构设计，实现 APP 端与支架上位机之间的联调开发；承担主运维、复杂功能研判与疑难问题排查，及时跟进全部 Bug 并负责 APP 上线更新，同期完成支架调试 APP 软著申请材料的提交。',
+    tags:['架构设计','上位机联调','主运维','软著申请'] },
+
+  { k:'三、亮点与不足分析', t:'阶段工作复盘', build:'mid', c:0x34d399, centered:true,
+    d:'结合上半年项目结果，归纳 3 项工作亮点，并针对知识、算法和产品能力三个方面制定改善计划。' },
+  { k:'三、亮点与不足分析 · 亮点 01 / 03', t:'桌面机器人原型闭环', build:'robot', c:0x34d399,
+    d:'完成从硬件 MVP 搭建到软件架构与交互流程实现，形成可完整演示的桌面机器人原型。',
+    tags:['硬件与软件协同','原型落地'] },
+  { k:'三、亮点与不足分析 · 亮点 02 / 03', t:'ChatBI SDK 嵌入落地', build:'bubble', c:0x34d399,
+    d:'完成从方案设计、复杂问题排查到 SDK 嵌入落地的全过程支撑。',
+    tags:['方案落地','SDK 集成'] },
+  { k:'三、亮点与不足分析 · 亮点 03 / 03', t:'发电量预测实施闭环', build:'solar', c:0x34d399,
+    d:'将 Vibe Coding 从想法转化为可执行流程，完成发电量预测功能的架构设计与核心实现。',
+    tags:['流程验证','核心实现'] },
+  { k:'三、亮点与不足分析 · 不足 01 / 03', t:'LLM 基础知识需加强', build:'ai', c:0xf59e0b,
+    d:'不足：LLM 基础知识储备不够系统。改善计划：按基础原理、应用框架和项目实践三个阶段持续学习，每月结合实际项目完成一次总结与验证。',
+    tags:['系统学习','项目验证','月度复盘'] },
+  { k:'三、亮点与不足分析 · 不足 02 / 03', t:'机器人算法基础需补充', build:'robot', c:0xf59e0b,
+    d:'不足：机器人算法基础仍需补充。改善计划：围绕 NVIDIA Isaac 集成任务学习感知、控制与仿真基础，并通过工业硬件集成验证学习结果。',
+    tags:['算法基础','Isaac 实践','集成验证'] },
+  { k:'三、亮点与不足分析 · 不足 03 / 03', t:'产品能力需增强', build:'docs', c:0xf59e0b,
+    d:'不足：需求分析、价值判断和结果衡量能力需增强。改善计划：在项目立项和迭代阶段补充用户目标、验收指标与复盘记录，形成需求到交付的闭环。',
+    tags:['需求分析','验收指标','交付复盘'] },
+
+  { k:'四、2026 年 2H 工作计划', t:'下半年工作安排', build:'mid', c:0xa78bfa, centered:true,
+    d:'下半年计划覆盖技术管理、机器人平台集成、项目交接、核心模块开发与运维、前端方向支持等 7 项工作。' },
+  { k:'四、2026 年 2H 工作计划 · 01 / 07', t:'电池护照系统', build:'battery', c:0xa78bfa,
+    d:'担任天合侧技术经理，负责项目中所有技术对接工作，保障各方技术方案对齐与落地。',
+    tags:['技术经理','技术对接','方案对齐'] },
+  { k:'四、2026 年 2H 工作计划 · 02 / 07', t:'机器人与 NVIDIA Isaac 集成', build:'chip', c:0xa78bfa,
+    d:'探索工业级硬件与 NVIDIA Isaac 平台的集成方案，验证可行的落地路径。',
+    tags:['工业级硬件','Isaac 集成','路径验证'] },
+  { k:'四、2026 年 2H 工作计划 · 03 / 07', t:'天玑 2.0 交接', build:'docs', c:0xa78bfa,
+    d:'完成天玑 2.0 项目的交接工作，保障项目平稳过渡。',
+    tags:['项目交接','平稳过渡'] },
+  { k:'四、2026 年 2H 工作计划 · 04 / 07', t:'支架调试 APP 与 TSC 监控平台', build:'phone', c:0xa78bfa,
+    d:'完成 TCU 调试模块的架构设计与核心模块开发，并承担支架调试 APP 与 TSC 监控平台的系统运维工作。',
+    tags:['架构设计','核心模块开发','系统运维'] },
+  { k:'四、2026 年 2H 工作计划 · 05 / 07', t:'支架装箱', build:'pallet', c:0xa78bfa,
+    d:'为支架装箱项目提供前端方向支持，配合项目迭代落地。',
+    tags:['前端支持','迭代配合'] },
+  { k:'四、2026 年 2H 工作计划 · 06 / 07', t:'指标语义', build:'cubes', c:0xa78bfa,
+    d:'为指标语义平台提供前端方向支持，保障平台前端工作持续推进。',
+    tags:['前端支持','持续推进'] },
+  { k:'四、2026 年 2H 工作计划 · 07 / 07', t:'ChatBI', build:'bubble', c:0xa78bfa,
+    d:'协助排查前端复杂问题，并完成与部分应用的 SDK 集成工作。',
+    tags:['问题排查','SDK 集成'] },
+
+  { k:'时间轴结束 · MID-YEAR REVIEW', t:'汇报主体结束', build:'finale', c:0xfbbf24, centered:true,
+    d:'以上为本次年中述职汇报的工作总结与下半年计划。继续向后滚动查看感谢与提名。',
+    tags:['工作总结','重点工作','下半年计划'] },
+];
+
+const N = SEGS.length;
+const GAP = 55;                 // 站间距
+const LAST = N - 1;
+
+/* ================= 场景基础 ================= */
+const canvas = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05070d);
+scene.fog = new THREE.FogExp2(0x05070d, 0.017);
+
+const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 400);
+
+scene.add(new THREE.AmbientLight(0x8899bb, 0.9));
+const dir = new THREE.DirectionalLight(0xffffff, 1.6);
+dir.position.set(5, 12, 8);
+scene.add(dir);
+
+/* ================= 材质/几何 helper ================= */
+const mat = (c, e = 0, ei = 0.6) =>
+  new THREE.MeshStandardMaterial({ color: c, emissive: e || c, emissiveIntensity: ei, roughness: .35, metalness: .55 });
+const box = (w, h, d, m) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+const sph = (r, m, s = 24) => new THREE.Mesh(new THREE.SphereGeometry(r, s, s), m);
+const cyl = (rt, rb, h, m, s = 24) => new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, s), m);
+
+/* ================= 3D 文字 sprite ================= */
+function textSprite(text, color = '#ffffff') {
+  const cv = document.createElement('canvas');
+  cv.width = 1024; cv.height = 200;
+  const g = cv.getContext('2d');
+  let size = 96;
+  g.font = `800 ${size}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+  const w = g.measureText(text).width;
+  if (w > 960) {   // 超宽自动缩字号,防止两端被裁
+    size = Math.floor(size * 960 / w);
+    g.font = `800 ${size}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+  }
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.shadowColor = color; g.shadowBlur = 28;
+  g.fillStyle = color;
+  g.fillText(text, 512, 100);
+  const tex = new THREE.CanvasTexture(cv);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  sp.scale.set(11, 2.15, 1);
+  return sp;
+}
+
+/* ================= 各站点建造者 =================
+   返回 { group, tick(t, dt) } —— 纯图元拼装，低多边形霓虹风 */
+const builders = {
+  namecard(c) {
+    const g = new THREE.Group();
+    const cv = document.createElement('canvas');
+    cv.width = 2048; cv.height = 1000;
+    const x = cv.getContext('2d');
+    const hex = '#' + c.toString(16).padStart(6, '0');
+
+    x.fillStyle = '#0a101a';
+    x.fillRect(24, 24, 2000, 952);
+    x.strokeStyle = hex;
+    x.lineWidth = 6;
+    x.strokeRect(24, 24, 2000, 952);
+    x.fillStyle = hex;
+    x.fillRect(24, 24, 18, 952);
+    x.fillRect(82, 92, 620, 10);
+    x.fillStyle = '#536273';
+    x.fillRect(790, 90, 2, 820);
+
+    x.textAlign = 'left'; x.textBaseline = 'middle';
+    x.fillStyle = '#91a3b7';
+    x.font = '600 46px "PingFang SC", "Microsoft YaHei", sans-serif';
+    x.fillText('PD 人员卡片', 82, 155);
+    x.fillStyle = '#f4f7fa';
+    x.font = '900 154px "PingFang SC", "Microsoft YaHei", sans-serif';
+    x.fillText('焦玉旻', 82, 330);
+    x.fillStyle = hex;
+    x.font = '700 58px "PingFang SC", "Microsoft YaHei", sans-serif';
+    x.fillText('主任工程师', 82, 470);
+    x.fillStyle = '#c4d2e0';
+    x.font = '500 40px "PingFang SC", "Microsoft YaHei", sans-serif';
+    x.fillText('AI与数据解决方案部', 82, 555);
+    x.fillText('开发技术组', 82, 620);
+
+    x.fillStyle = '#91a3b7';
+    x.font = '600 42px "PingFang SC", "Microsoft YaHei", sans-serif';
+    x.fillText('1H 重点参与工作', 860, 150);
+    x.fillStyle = '#eef3f8';
+    x.font = '600 44px "PingFang SC", "Microsoft YaHei", sans-serif';
+    const projects = ['机器人 MVP 原型', '指标语义平台', '支架装箱', '发电量预测', 'ChatBI SDK 嵌入', 'TSC 监控与调试 APP'];
+    projects.forEach((project, i) => {
+      const column = i % 2;
+      const row = Math.floor(i / 2);
+      const px = 860 + column * 560;
+      const py = 260 + row * 112;
+      x.fillStyle = hex;
+      x.fillRect(px, py - 6, 16, 16);
+      x.fillStyle = '#eef3f8';
+      x.fillText(project, px + 38, py);
+    });
+
+    x.fillStyle = '#141e2c';
+    x.fillRect(850, 650, 1090, 220);
+    const metrics = [['06', '重点工作'], ['03', '工作亮点'], ['03', '改进方向']];
+    metrics.forEach(([value, label], i) => {
+      const px = 920 + i * 350;
+      x.fillStyle = hex;
+      x.font = '800 76px "PingFang SC", "Microsoft YaHei", sans-serif';
+      x.fillText(value, px, 730);
+      x.fillStyle = '#91a3b7';
+      x.font = '500 34px "PingFang SC", "Microsoft YaHei", sans-serif';
+      x.fillText(label, px, 815);
+    });
+
+    const tex = new THREE.CanvasTexture(cv);
+    tex.anisotropy = 4;
+    const LAYERS = 12, STEP = .06;
+    for (let i = 0; i < LAYERS; i++) {
+      const front = i === LAYERS - 1;
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(12, 5.85),
+        new THREE.MeshBasicMaterial({
+          map: tex, transparent: true, alphaTest: .15,
+          color: front ? 0xffffff : 0x263544, side: THREE.DoubleSide }));
+      p.position.z = (i - LAYERS / 2) * STEP;
+      g.add(p);
+    }
+    return { group: g, tick: t => {
+      g.rotation.y = Math.sin(t * .45) * .12;
+      g.position.y = 1 + Math.sin(t * 1.1) * .12;
+    } };
+  },
+  gate(c) {
+    const g = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(7, .28, 12, 64), mat(c, c, 1.2));
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(7.9, .08, 8, 64), mat(c, c, .8));
+    g.add(ring, ring2);
+    return { group: g, tick: t => { ring.rotation.z = t * .25; ring2.rotation.z = -t * .18; } };
+  },
+  gear(c) {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.TorusGeometry(2.2, .55, 12, 32), mat(c, c, .5));
+    g.add(body);
+    for (let i = 0; i < 8; i++) {
+      const tooth = box(.7, .9, .7, mat(c));
+      const a = i / 8 * Math.PI * 2;
+      tooth.position.set(Math.cos(a) * 2.75, Math.sin(a) * 2.75, 0);
+      tooth.rotation.z = a;
+      g.add(tooth);
+    }
+    g.add(cyl(.5, .5, 1.2, mat(0x888899)));
+    return { group: g, tick: t => { g.rotation.z = t * .4; } };
+  },
+  bulb(c) {
+    const g = new THREE.Group();
+    const glass = sph(1.5, mat(c, c, 1.6));
+    const glow = sph(2.1, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .12 }));
+    const base = cyl(.55, .7, 1, mat(0x999aa8), 12);
+    base.position.y = -1.9;
+    g.add(glass, glow, base);
+    return { group: g, tick: t => { glass.material.emissiveIntensity = 1.4 + Math.sin(t * 2.2) * .35; } };
+  },
+  monitor(c) {
+    const g = new THREE.Group();
+    g.add(box(3.4, 2.2, .25, mat(0x1a2233)));
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(3, 1.8), new THREE.MeshBasicMaterial({ color: c }));
+    screen.position.z = .14;
+    const stand = cyl(.15, .5, 1, mat(0x1a2233), 8);
+    stand.position.y = -1.6;
+    g.add(screen, stand);
+    return { group: g, tick: t => { screen.material.color.setHSL(.58, .8, .5 + Math.sin(t * 3) * .12); } };
+  },
+  ai(c) {
+    const g = new THREE.Group();
+    const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.8, 1),
+      new THREE.MeshBasicMaterial({ color: c, wireframe: true }));
+    const core = sph(.8, mat(c, c, 2));
+    g.add(wire, core);
+    return { group: g, tick: t => {
+      wire.rotation.set(t * .5, t * .7, 0);
+      core.scale.setScalar(1 + Math.sin(t * 2.5) * .18);
+    } };
+  },
+  robot(c) {
+    const g = new THREE.Group();
+    const m = mat(0xd7dee8, c, .15);
+    const body = box(1.7, 1.9, 1.1, m); body.position.y = 1.1;
+    const head = box(1.3, 1.1, 1.1, m); head.position.y = 2.9;
+    const eyeM = mat(c, c, 2.5);
+    const e1 = sph(.14, eyeM), e2 = sph(.14, eyeM);
+    e1.position.set(-.3, 2.95, .58); e2.position.set(.3, 2.95, .58);
+    const ant = cyl(.04, .04, .7, m); ant.position.y = 3.8;
+    const tip = sph(.12, eyeM); tip.position.y = 4.2;
+    const a1 = box(.35, 1.4, .35, m), a2 = a1.clone();
+    a1.position.set(-1.15, 1.2, 0); a2.position.set(1.15, 1.2, 0);
+    const chest = box(.9, .5, .1, mat(c, c, 1.8)); chest.position.set(0, 1.3, .58);
+    g.add(body, head, e1, e2, ant, tip, a1, a2, chest);
+    return { group: g, tick: t => {
+      g.position.y = Math.sin(t * 1.4) * .25;
+      head.rotation.y = Math.sin(t * .8) * .3;
+      a1.rotation.x = Math.sin(t * 1.4) * .35;
+      a2.rotation.x = -Math.sin(t * 1.4) * .35;
+    } };
+  },
+  cubes(c) {
+    const g = new THREE.Group();
+    const cells = [];
+    for (let x = 0; x < 4; x++) for (let y = 0; y < 4; y++) {
+      const b = box(.62, .62, .62, mat(c, c, .7));
+      b.position.set((x - 1.5) * .95, (y - 1.5) * .95 + 1.5, 0);
+      cells.push(b); g.add(b);
+    }
+    return { group: g, tick: t => cells.forEach((b, i) => {
+      b.position.z = Math.sin(t * 1.8 + i * .55) * .45;
+      b.rotation.y = t * .4 + i;
+    }) };
+  },
+  pallet(c) {
+    const g = new THREE.Group();
+    const base = box(3.4, .3, 2.6, mat(0x8a6b45)); base.position.y = .15;
+    g.add(base);
+    const sizes = [[1.2,1,1.1,-.9,.8,-.5],[1.1,.9,1,.6,.75,-.6],[1,.8,.9,-.2,.7,.75],[.9,.8,.8,1,.7,.6],[.8,.7,.8,-.4,1.55,-.2]];
+    for (const [w,h,d,x,y,z] of sizes) {
+      const b = box(w, h, d, mat(0xc8b08a, c, .12));
+      b.position.set(x, y + .3 + h/2 - .3, z);
+      g.add(b);
+    }
+    return { group: g, tick: t => { g.rotation.y = t * .3; } };
+  },
+  solar(c) {
+    const g = new THREE.Group();
+    const sun = sph(.9, mat(0xffd166, 0xffd166, 2)); sun.position.set(-2.2, 3.2, 0);
+    const panel = box(3, .14, 2, mat(0x123a5e, 0x2266aa, .5));
+    panel.rotation.z = .35; panel.position.y = 1;
+    const leg = cyl(.08, .08, 1.4, mat(0x666a75)); leg.position.y = .2;
+    // 预测曲线
+    const pts = [];
+    for (let i = 0; i <= 30; i++) {
+      const x = i / 30 * 4 - 2;
+      pts.push(new THREE.Vector3(x, 2.6 + Math.sin(i / 30 * Math.PI) * 1.4 + i / 30 * .6, 1.4));
+    }
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: c }));
+    g.add(sun, panel, leg, line);
+    return { group: g, tick: t => { sun.material.emissiveIntensity = 1.7 + Math.sin(t * 2) * .4; } };
+  },
+  bubble(c) {
+    const g = new THREE.Group();
+    const b = sph(1.5, mat(0x1c2740, c, .35)); b.position.y = 2;
+    const tail = cyl(.02, .5, .9, mat(0x1c2740, c, .35)); tail.position.set(-.9, .6, 0); tail.rotation.z = .5;
+    const dots = [];
+    for (let i = 0; i < 3; i++) {
+      const d = sph(.2, mat(c, c, 2));
+      d.position.set((i - 1) * .65, 2, 1.15);
+      dots.push(d); g.add(d);
+    }
+    g.add(b, tail);
+    return { group: g, tick: t => dots.forEach((d, i) => {
+      d.position.y = 2 + Math.max(0, Math.sin(t * 3 - i * .6)) * .35;
+    }) };
+  },
+  tsc(c) {
+    const g = new THREE.Group();
+    const mon = box(3, 2, .25, mat(0x16202f)); mon.position.y = 2.2;
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.6), new THREE.MeshBasicMaterial({ color: 0x0a2a22 }));
+    screen.position.set(0, 2.2, .14);
+    // 屏幕上跳动的监控柱状条
+    const bars = [];
+    for (let i = 0; i < 5; i++) {
+      const bar = box(.28, 1, .05, mat(c, c, 1.5));
+      bar.position.set(-.9 + i * .45, 1.7, .17);
+      bars.push(bar); g.add(bar);
+    }
+    const stand = cyl(.12, .45, .9, mat(0x16202f), 8); stand.position.y = .8;
+    // 扳手:柄 + 头
+    const wrench = new THREE.Group();
+    const handle = box(.18, 1.6, .12, mat(0xb8bfca));
+    const jaw = new THREE.Mesh(new THREE.TorusGeometry(.35, .13, 8, 16, Math.PI * 1.4), mat(0xb8bfca));
+    jaw.position.y = .95; jaw.rotation.z = Math.PI * .8;
+    wrench.add(handle, jaw);
+    wrench.position.set(2.1, 1.4, .3); wrench.rotation.z = -.5;
+    g.add(mon, screen, stand, wrench);
+    return { group: g, tick: t => bars.forEach((bar, i) => {
+      const h = .4 + Math.abs(Math.sin(t * 2 + i * 1.3)) * 1.1;
+      bar.scale.y = h; bar.position.y = 1.35 + h / 2;
+    }) };
+  },
+  mid(c) {
+    const g = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(5.5, .22, 12, 64), mat(c, c, 1.4));
+    const pillar = cyl(.35, .6, 5, mat(c, c, .8));
+    const orb = sph(1, mat(c, c, 2)); orb.position.y = 3.4;
+    g.add(ring, pillar, orb);
+    return { group: g, tick: t => {
+      ring.rotation.z = t * .3;
+      orb.position.y = 3.4 + Math.sin(t * 1.6) * .35;
+    } };
+  },
+  battery(c) {
+    const g = new THREE.Group();
+    const shell = cyl(1.1, 1.1, 2.8, mat(0x2a3350, c, .2)); shell.position.y = 1.8;
+    const cap = cyl(.45, .45, .35, mat(0xb8bfca)); cap.position.y = 3.4;
+    const juice = cyl(.85, .85, 2, mat(c, c, 1.6)); juice.position.y = 1.55;
+    // 护照卡片
+    const card = box(1.5, 2, .1, mat(0x1a2233, c, .4));
+    card.position.set(1.9, 1.6, 0); card.rotation.y = -.4;
+    const stripe = box(1.5, .3, .11, mat(c, c, 1.5));
+    stripe.position.set(1.9, 2.2, 0); stripe.rotation.y = -.4;
+    g.add(shell, cap, juice, card, stripe);
+    return { group: g, tick: t => {
+      juice.scale.y = .8 + Math.sin(t * 1.8) * .15;
+      g.rotation.y = t * .25;
+    } };
+  },
+  chip(c) {
+    const g = new THREE.Group();
+    const die = box(2.2, .3, 2.2, mat(0x101820, c, .5)); die.position.y = 1.4;
+    g.add(die);
+    for (let i = 0; i < 5; i++) {
+      const p1 = box(.12, .12, .5, mat(0xd4af37)), p2 = p1.clone();
+      p1.position.set(-.9 + i * .45, 1.4, 1.35); p2.position.set(-.9 + i * .45, 1.4, -1.35);
+      g.add(p1, p2);
+    }
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(1.9, .08, 8, 48), mat(c, c, 1.2));
+    halo.rotation.x = Math.PI / 2; halo.position.y = 1.4;
+    const core = sph(.5, mat(c, c, 2.2)); core.position.y = 2.3;
+    g.add(halo, core);
+    return { group: g, tick: t => {
+      halo.rotation.z = t * .6;
+      core.position.y = 2.3 + Math.sin(t * 2) * .2;
+    } };
+  },
+  docs(c) {
+    const g = new THREE.Group();
+    const pages = [];
+    for (let i = 0; i < 3; i++) {
+      const p = box(2, 2.6, .12, mat(0xe8ecf2, c, .15));
+      p.position.set(i * .35 - .35, 1.8 + i * .18, i * -.3);
+      p.rotation.y = i * .18 - .18;
+      pages.push(p); g.add(p);
+    }
+    // 交接:双向弧箭头用两个锥体示意
+    const a1 = cyl(0, .3, .7, mat(c, c, 1.5)); a1.position.set(0, 3.8, 0); a1.rotation.z = -Math.PI / 2;
+    const a2 = cyl(0, .3, .7, mat(c, c, 1.5)); a2.position.set(0, .4, 0); a2.rotation.z = Math.PI / 2;
+    g.add(a1, a2);
+    return { group: g, tick: t => {
+      a1.position.x = Math.sin(t * 1.5) * .6;
+      a2.position.x = -Math.sin(t * 1.5) * .6;
+      pages.forEach((p, i) => p.position.y = 1.8 + i * .18 + Math.sin(t + i) * .08);
+    } };
+  },
+  phone(c) {
+    const g = new THREE.Group();
+    const body = box(1.5, 3, .16, mat(0x141b2a, c, .25)); body.position.y = 2;
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 2.7), new THREE.MeshBasicMaterial({ color: 0x0c1220 }));
+    screen.position.set(0, 2, .09);
+    g.add(body, screen);
+    const icons = [];
+    for (let i = 0; i < 6; i++) {
+      const ic = box(.42, .42, .42, mat(c, c, 1.2));
+      icons.push(ic); g.add(ic);
+    }
+    return { group: g, tick: t => icons.forEach((ic, i) => {
+      const a = t * .7 + i / 6 * Math.PI * 2;
+      ic.position.set(Math.cos(a) * 1.9, 2 + Math.sin(t * 1.3 + i) * .3, Math.sin(a) * 1.9);
+      ic.rotation.y = a;
+    }) };
+  },
+  finale(c) {
+    const g = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(8, .3, 12, 80), mat(c, c, 1.5));
+    const orb = sph(2.2, mat(0xffffff, c, 1.2));
+    const halo = sph(3.2, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .1 }));
+    g.add(ring, orb, halo);
+    return { group: g, tick: t => {
+      ring.rotation.z = t * .2;
+      orb.scale.setScalar(1 + Math.sin(t * 1.5) * .08);
+    } };
+  },
+};
+
+/* ================= 时间轴铺设 ================= */
+// 相机路径控制点(带轻微摆动,避免一条直线太死板)
+const pts = [new THREE.Vector3(0, 2, 30)];
+for (let i = 0; i < N; i++) {
+  const weave = SEGS[i].centered ? 0 : Math.sin(i * 1.3) * 2.5;
+  pts.push(new THREE.Vector3(weave, 2 + Math.sin(i * .7) * .5, -i * GAP));
+}
+pts.push(new THREE.Vector3(0, 2, -(N - 1) * GAP - 35));
+const curve = new THREE.CatmullRomCurve3(pts);
+curve.arcLengthDivisions = 400;
+
+// 时间轴光轨(沿着路径的一条亮线,把叙事串起来)
+{
+  const linePts = curve.getPoints(300).map(p => new THREE.Vector3(p.x, -1.6, p.z));
+  const rail = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(linePts),
+    new THREE.LineBasicMaterial({ color: 0x334a66, transparent: true, opacity: .8 }));
+  scene.add(rail);
+}
+
+const tickers = [];
+const stationSide = [];   // 每站左右侧,用于相机注视偏置
+
+for (let i = 0; i < N; i++) {
+  const seg = SEGS[i];
+  const centered = !!seg.centered;
+  const side = centered ? 0 : (i % 2 ? 1 : -1);
+  stationSide.push(side);
+
+  const z = -i * GAP;
+  const holder = new THREE.Group();
+
+  if (centered) {
+    // 时代之门/年中/终点:门在路径上,主体在门内或旁边
+    const gate = builders.gate(seg.c);
+    gate.group.position.set(0, 2, z);
+    holder.add(gate.group); tickers.push(gate.tick);
+    if (seg.build !== 'gate') {
+      const main = builders[seg.build](seg.c);
+      main.group.position.set(8.5, 0, z);   // 主体靠边,相机穿门不穿模
+      holder.add(main.group); tickers.push(main.tick);
+    }
+    const label = textSprite(seg.t, '#' + seg.c.toString(16).padStart(6, '0'));
+    label.position.set(0, 11.5, z);
+    holder.add(label);
+  } else {
+    // 项目站:平台 + 主体 + 标题
+    const x = side * 9;
+    const plat = cyl(4.2, 4.6, .35, new THREE.MeshStandardMaterial({
+      color: 0x0d1420, emissive: seg.c, emissiveIntensity: .12, roughness: .8 }), 40);
+    plat.position.set(x, -1.8, z);
+    holder.add(plat);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(4.4, .07, 8, 48), mat(seg.c, seg.c, 1));
+    rim.rotation.x = Math.PI / 2; rim.position.set(x, -1.6, z);
+    holder.add(rim);
+
+    const main = builders[seg.build](seg.c);
+    main.group.position.set(x, -1.4, z);
+    holder.add(main.group); tickers.push(main.tick);
+
+    const label = textSprite(seg.label || seg.t, '#' + seg.c.toString(16).padStart(6, '0'));
+    label.position.set(x, 6.5, z);
+    holder.add(label);
+  }
+  scene.add(holder);
+}
+
+// 星空
+{
+  const n = 1400, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    pos[i * 3] = (Math.random() - .5) * 130;
+    pos[i * 3 + 1] = (Math.random() - .5) * 70 + 5;
+    pos[i * 3 + 2] = 40 - Math.random() * (N * GAP + 100);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xaac4dd, size: .22, sizeAttenuation: true })));
+}
+
+/* ================= 滚动驱动 + HUD ================= */
+const TIMELINE_PAGES = N + 2, THANKS_PAGES = 2;
+document.body.style.height = `${(TIMELINE_PAGES + THANKS_PAGES) * 100}vh`;
+
+const $ = id => document.getElementById(id);
+const panel = $('panel'), kicker = $('kicker'), title = $('title'),
+      desc = $('desc'), tags = $('tags'), bar = $('bar'),
+      hint = $('hint'), again = $('again'), dots = $('dots'),
+      cover = $('cover'), hud = $('hud'), thanks = $('thanks'),
+      thanksInner = $('thanks-inner'), thanksAgain = $('thanks-again');
+
+// 导航点
+const dotBtns = SEGS.map((s, i) => {
+  const b = document.createElement('button');
+  b.title = s.t;
+  b.onclick = () => scrollTo({ top: i / (N - 1) * timelineMaxScroll(), behavior: 'smooth' });
+  dots.appendChild(b);
+  return b;
+});
+
+const timelineMaxScroll = () => (TIMELINE_PAGES - 1) * innerHeight;
+
+let curIdx = -1, panelTimer;
+function setSegment(i) {
+  if (i === curIdx) return;
+  curIdx = i;
+  clearTimeout(panelTimer);
+  panel.classList.add('fade');
+  panelTimer = setTimeout(() => {
+    const s = SEGS[i];
+    kicker.textContent = s.k;
+    kicker.style.color = '#' + s.c.toString(16).padStart(6, '0');
+    title.textContent = s.t;
+    desc.textContent = s.d;
+    tags.innerHTML = (s.tags || []).map(t => `<span>${t}</span>`).join('');
+    again.style.display = i === LAST ? 'inline-block' : 'none';
+    panel.classList.remove('fade');
+  }, 280);
+  dotBtns.forEach((b, j) => b.classList.toggle('on', j === i));
+}
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp01 = value => Math.min(Math.max(value, 0), 1);
+const smoothstep = value => {
+  const x = clamp01(value);
+  return x * x * (3 - 2 * x);
+};
+
+let thanksVisible = false;
+function setThanksVisible(show) {
+  if (show === thanksVisible) return;
+  thanksVisible = show;
+  thanks.classList.toggle('show', show);
+  thanks.setAttribute('aria-hidden', String(!show));
+}
+
+function updateThanksTransition(progress) {
+  const show = progress > 0;
+  const backdrop = reduceMotion ? Number(show) : smoothstep((progress - .08) / .72);
+  const content = reduceMotion ? Number(show) : smoothstep((progress - .28) / .55);
+  setThanksVisible(show);
+  thanks.style.backgroundColor = `rgba(5,7,13,${(.94 * backdrop).toFixed(3)})`;
+  thanksInner.style.opacity = content;
+  thanksInner.style.transform = `translateY(${Math.round((1 - content) * 48)}px)`;
+  hud.style.opacity = 1 - backdrop;
+  canvas.style.filter = `brightness(${1 - backdrop * .7}) saturate(${1 - backdrop * .4})`;
+  canvas.style.opacity = 1 - backdrop * .3;
+}
+
+const restart = () => scrollTo({ top: 0, behavior: 'smooth' });
+again.onclick = restart;
+thanksAgain.onclick = restart;
+$('start').onclick = () => {
+  cover.classList.add('off');
+};
+addEventListener('scroll', () => {
+  if (scrollY > 40) { cover.classList.add('off'); hint.style.opacity = 0; }
+}, { passive: true });
+
+/* ================= 渲染循环 ================= */
+const mouse = { x: 0, y: 0 };
+addEventListener('mousemove', e => {
+  mouse.x = (e.clientX / innerWidth - .5) * 2;
+  mouse.y = (e.clientY / innerHeight - .5) * 2;
+}, { passive: true });
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+let smooth = 0;
+const clock = new THREE.Clock();
+const lookAhead = new THREE.Vector3();
+
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .05);
+  const t = clock.elapsedTime;
+
+  const target = Math.min(Math.max(scrollY / timelineMaxScroll(), 0), 1);
+  const thanksProgress = Math.min(Math.max(
+    (scrollY - timelineMaxScroll()) / (THANKS_PAGES * innerHeight), 0), 1);
+  updateThanksTransition(thanksProgress);
+  smooth += (target - smooth) * (1 - Math.pow(.001, dt));   // 帧率无关阻尼
+
+  // 相机沿路径
+  const p = curve.getPointAt(smooth);
+  camera.position.set(p.x + mouse.x * .7, p.y - mouse.y * .5, p.z);
+
+  // 注视:路径前方 + 偏向当前站一侧
+  const segF = smooth * (N - 1);
+  const i0 = Math.min(Math.floor(segF), N - 1);
+  const frac = segF - i0;
+  const sideX = stationSide[i0] * (1 - frac) + (stationSide[i0 + 1] ?? 0) * frac;
+  curve.getPointAt(Math.min(smooth + .035, 1), lookAhead);
+  lookAhead.x += sideX * 9 * .42;
+  lookAhead.y -= .4;
+  camera.lookAt(lookAhead);
+
+  for (const fn of tickers) fn(t, dt);
+
+  bar.style.width = `${smooth * 100}%`;
+  // 文案与“注视点”同步而非相机位置:相机总是看向前方站台,
+  // 用 lookAhead 的 z 推算当前看到的站,文字即随视野切换
+  const viewIdx = Math.min(Math.max(Math.round(-lookAhead.z / GAP), 0), N - 1);
+  setSegment(viewIdx);
+
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
